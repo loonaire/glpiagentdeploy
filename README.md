@@ -1,8 +1,6 @@
 # Powershell GLPI Agent Deploy Script 
 
-## Why?
-
-### Why this script?
+## Why this script?
 
 I have some problems with the vbs script:
 - vbs is not installed in Windows 11 by default (this is better for security) so the script will become unusable in the future
