@@ -31,6 +31,7 @@
 .NOTES
 Created by Loonaire (github.com/loonaire)
 This code is under licence GNU GPL3
+Script repository: https://github.com/loonaire/glpiagentdeploy
 #>
 
 param(
