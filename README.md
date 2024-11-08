@@ -45,7 +45,7 @@ Because the args can be too long for gpedit.msc tool (the script don't start), y
 42  [String]$InstallerPath = "", # NOTE You ca customize the installer path to use here
 45  [String] $InstallerArgs = "/qn" # NOTE You ca customize the args to use here
 ```
-Line 42: Add the path to msi installer (or use InstallerPath param if you path is short) (don't change it if you want use the online mode)
+Line 42: Add the path to msi installer (or use InstallerPath param if you path is short) (don't change it if you want use the online mode)  
 Line 45: Add the args to configure the GLPI Agent, you can find all documentation [here](https://glpi-agent.readthedocs.io/en/1.11/installation/windows-command-line.html#command-line-parameters)
 
 If you don't want use the GPO interface for set script parameter you can set others param variable by changing her default value.
