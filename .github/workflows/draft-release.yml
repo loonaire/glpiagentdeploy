@@ -1,0 +1,51 @@
+name: Create Draft Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create-draft-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      
+      # Get all powershell script
+      - name: Find PowerShell script
+        id: find_ps_script
+        run: |
+          ps_script=$(find . -type f -name "*.ps1" | head -n 1)
+          if [ -z "$ps_script" ]; then
+            echo "No PowerShell script found in the repository."
+            exit 1
+          fi
+          echo "script_path=$ps_script" >> $GITHUB_ENV
+
+      # Create release 
+      # NOTE: This step need write permission for github action in repo settings
+      - name: Create draft release
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          API_URL="https://api.github.com/repos/${{ github.repository }}/releases"
+          curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/releases" -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"tag_name": "${{ github.ref_name }}","target_commitish": "${{ github.sha }}","name": "${{ github.ref_name }}","body": "This is a draft release containing the PowerShell script.","draft": true,"prerelease": false}' > response.json
+          RELEASE_ID=$(jq -r .id response.json)
+          echo "release_id=$RELEASE_ID" >> $GITHUB_ENV
+
+      # Upload powershell scripts to assets
+      - name: Upload PowerShell script as asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          UPLOAD_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/${{ env.release_id }}/assets?name=$(basename ${{ env.script_path }})"
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"${{ env.script_path }}" \
+            "$UPLOAD_URL"
