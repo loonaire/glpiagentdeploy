@@ -48,10 +48,12 @@ param(
             throw ("{0} must be an '*.msi' file." -f $_)
         }
         })]
-    [String]$InstallerPath = "", # NOTE You ca customize the installer path to use here
+    [string]$InstallerPath = "", # NOTE You ca customize the installer path to use here
 
     [Parameter(HelpMessage = 'Arguments to use for GLPI Agent installion')]
-    [String] $InstallerArgs = "/qn" # NOTE You ca customize the args to use here
+    [string] $InstallerArgs = "/qn" # NOTE You ca customize the args to use here
+
+    # TODO add allowupdate arg
 )
 
 if (($Online -ne $true) -and ($InstallerPath -eq "")) {
@@ -85,7 +87,7 @@ function Get-InstalledApplicationInfos {
     #>
     param (
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Specifies of the software to get')]
-        [String] $Name
+        [string] $Name
     )
 
     $registryPath = @(
@@ -129,7 +131,7 @@ function Get-MSIProperties {
             throw ("{0} must be an '*.msi' file." -f $_)
         }
         })]
-        [String] $Path
+        [string] $Path
     )
     
     # Avoid error with the opening of msi database
@@ -181,7 +183,7 @@ function Remove-Application {
     #>
     param (
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Specifies Command to uninstall application')]
-        [String] $Command
+        [string] $Command
     )    
     
     if ($Command.EndsWith(".exe") -and -not ($Command.StartsWith("MsiExec"))) {
@@ -249,7 +251,7 @@ function Install-GLPIAgent {
             throw ("{0} must be an '*.msi' file." -f $_)
         }
         })]
-        [String] $Path,
+        [string] $Path,
         [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Specifies the new version of the software")]
         [string]$InstallationParameters
     )
@@ -281,7 +283,7 @@ function Test-UpdateAvalaible {
     [string]$CurrentVersion,
 
     [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Specifies the new version of the software")]
-    [string]$NewVersion    
+    [switch]$NewVersion    
     )
 
     $parsedCurrentVersion = $CurrentVersion.Split('.')
@@ -323,6 +325,47 @@ function Get-OnlineLastVersion {
         DownloadUrl = $jsonAssetData.browser_download_url
     }
 }
+function Use-Winget{
+    <#
+    .SYNOPSIS
+    Download and install a software with Winget from winget software id
+    .DESCRIPTION
+    Download and install a software with Winget from winget software id
+    Can allow to do update or not with the parameter AllowUpdate
+    .EXAMPLE
+    #>
+    param(
+        [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Winget ID of the software to install")]
+        [string]$SoftwareId,
+        [Parameter(Mandatory = $false, Position = 2, HelpMessage = "If is set allow update of the software")]
+        [switch]$AllowUpdate = $false,
+        [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Install the specific version if this parameter is set")]
+        [string]$SpecificVersion
+        )
+    
+    # Test if the software is installed with winget list command. return more than one line if the soft is installed. By default winget return one line (no package installed message)
+    
+    if ($(winget list --id "$SoftwareId" -e).length -gt 1) {
+        # And if the software need to be updated
+        if (($AllowUpdate -eq $true) -and ($(winget update --id "$SoftwareId" -e).length -gt 1)) {
+            winget upgrade --id "$SoftwareId" -e
+        } 
+    } else {
+        if ([string]::IsNullOrWhiteSpace($SpecificVersion)) {
+           winget install --id "$SoftwareId" -e --version "$SpecificVersion"
+        } else {
+            # Install the last version by default
+            winget install --id "$SoftwareId" -e
+        }
+    }
+
+    # TODO
+    # Optimize the repetition of winget command
+    # Use Invoke-command instead of direct command? (Pass all the winget args as variable)
+    # Check the return of winget install
+    
+}
+
 
 # --------------- MAIN -----------------------
 
