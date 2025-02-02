@@ -10,8 +10,8 @@ I have some problems with the vbs script:
 
 ### Why not use Winget?
 
-I don't like winget, it's complicated to give install parameter and until few month GLPI Agent was not avaliable in it.
-Winget is also not avalaible on all computer so it's better to not use it, i have also the advantage to get old versions from github (this is un idea for update this script later)
+I don't like winget, it's complicated to give install parameter and until few month GLPI Agent was not available in it.
+Winget is also not available on all computer so it's better to not use it, i have also the advantage to get old versions from github (this is un idea for update this script later)
 
 ## How to use
 

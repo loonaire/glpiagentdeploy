@@ -138,6 +138,10 @@ function Get-InstalledApplicationInfos {
     return $Null
 }
 
+function Get-WindowsArchitecture {
+    return "$([System.Runtime.InteropServices.RuntimeInformation,mscorlib]::OSArchitecture.ToString().ToLower())"
+}
+
 function Get-MSIProperties {
     <#
     .SYNOPSIS
@@ -294,7 +298,7 @@ function Install-GLPIAgent {
     Start-Process msiexec "/i $Path $InstallationParameters" -Wait
 }
 
-function Test-UpdateAvalaible {
+function Test-UpdateAvailable {
     <#
     .SYNOPSIS
     Compare two software version
@@ -355,9 +359,9 @@ function Get-OnlineVersion {
         
         $ProgressPreference = 'SilentlyContinue'
         if ([string]::IsNullOrWhiteSpace($SpecificVersion) -eq $false) {
-            $jsonVersionAvalaible = ((Invoke-WebRequest "$repoUrl" -UseBasicParsing).Content | ConvertFrom-Json) | Where-Object {$_.draft -eq $False -and $_.prerelease -eq $False -and $_.tag_name -eq "$SpecificVersion"}  
+            $jsonVersionAvailable = ((Invoke-WebRequest "$repoUrl" -UseBasicParsing).Content | ConvertFrom-Json) | Where-Object {$_.draft -eq $False -and $_.prerelease -eq $False -and $_.tag_name -eq "$SpecificVersion"}  
         } else {
-            $jsonVersionAvalaible = ((Invoke-WebRequest "$repoUrl" -UseBasicParsing).Content | ConvertFrom-Json) | Where-Object {$_.draft -eq $False -and $_.prerelease -eq $False}  
+            $jsonVersionAvailable = ((Invoke-WebRequest "$repoUrl" -UseBasicParsing).Content | ConvertFrom-Json) | Where-Object {$_.draft -eq $False -and $_.prerelease -eq $False}  
         }
         $ProgressPreference = 'Continue'
 
@@ -365,9 +369,9 @@ function Get-OnlineVersion {
         throw $_
     }
 
-    $jsonAssetData = $jsonVersionAvalaible[0].assets | Where-Object {$_.content_type -like "application/x-msi"}
+    $jsonAssetData = $jsonVersionAvailable[0].assets | Where-Object {$_.content_type -like "application/x-msi"}
     return @{
-        Version = $jsonVersionAvalaible[0].tag_name
+        Version = $jsonVersionAvailable[0].tag_name
         Filename = $jsonAssetData.name
         DownloadUrl = $jsonAssetData.browser_download_url
     }
@@ -457,8 +461,8 @@ function Use-ClassicInstallation{
             $OnlineInfos = Get-OnlineVersion -SpecificVersion "$OnlineSpecificVersion"
         }
         
-        if (($Null -eq $GLPIAgentInstallationInfos) -or (($DisableUpdate -eq $false) -and (Test-UpdateAvalaible -CurrentVersion $GLPIAgentInstallationInfos.DisplayVersion -NewVersion $OnlineInfos.version)) ) {
-            # GLPI Agent is not installed or an update is avalaible
+        if (($Null -eq $GLPIAgentInstallationInfos) -or (($DisableUpdate -eq $false) -and (Test-UpdateAvailable -CurrentVersion $GLPIAgentInstallationInfos.DisplayVersion -NewVersion $OnlineInfos.version)) ) {
+            # GLPI Agent is not installed or an update is available
             # Download the GLPI msi
             try {
                 $ProgressPreference = 'SilentlyContinue'
@@ -486,8 +490,8 @@ function Use-ClassicInstallation{
         exit
     }
     
-    if (($Null -eq $GLPIAgentInstallationInfos) -or (($DisableUpdate -eq $false) -and (Test-UpdateAvalaible -CurrentVersion $GLPIAgentInstallationInfos.DisplayVersion -NewVersion $GLPIAgentInstallerInfos.ProductVersion) -eq $true)) {
-        # GLPI Agent is not installed or an update is avalaible
+    if (($Null -eq $GLPIAgentInstallationInfos) -or (($DisableUpdate -eq $false) -and (Test-UpdateAvailable -CurrentVersion $GLPIAgentInstallationInfos.DisplayVersion -NewVersion $GLPIAgentInstallerInfos.ProductVersion) -eq $true)) {
+        # GLPI Agent is not installed or an update is available
         if ([string]::IsNullOrWhiteSpace($InstallArgs)) {
             Install-GLPIAgent -Path "$GLPIAgentInstallerPath"
         } else {
@@ -502,6 +506,12 @@ function Use-ClassicInstallation{
 if ($RemoveFusionInventory -eq $true) {
     Uninstall-FusionInventory
 }
+
+# GLPI Agent is only available
+if (Get-WindowsArchitecture -ne "x64") {
+    exit
+}
+
 
 if ($Winget -eq $true) {
     $wingetArgs = @{
