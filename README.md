@@ -4,14 +4,13 @@
 
 I have some problems with the vbs script:
 - vbs is not installed in Windows 11 by default (this is better for security) so the script will become unusable in the future
-- vbs script need to be edited for each update of GLPI Agent, this script don't need modification and if he need modification this is because the dev team of GLPI Agent change github release name format
-- This script support update, the vbs script doesn't
-- For deploy with GPO you just have to edit the default values in the script args, you have nothing else to do 
+- vbs script need to be edited for each update of GLPI Agent, this script need modification only if you want to use it with GPO or if some critical things are change
+- This script support update GLPI Agent, this is not the case of the vbs one
+- For deploy with GPO you just have to edit the default values in the script args and exec the script in your GPO, you have nothing else to do 
 
-### Why not use Winget?
+### Winget
 
-I don't like winget, it's complicated to give install parameter and until few month GLPI Agent was not available in it.
-Winget is also not available on all computer so it's better to not use it, i have also the advantage to get old versions from github (this is un idea for update this script later)
+GLPI Agent is now is winget repo and i have had this option in the script
 
 ## How to use
 
@@ -23,6 +22,11 @@ Install from local file:
 Install from Github repository:
 ```powershell
 ./deployglpiagent.ps1 -Online -InstallerArgs "<install args>" 
+```
+
+Don't try to update
+```powershell
+./deployglpiagent.ps1 -Online -InstallerArgs "<install args>" -DisableUpdate
 ```
 
 Remove Fusion inventory previous installation:
@@ -38,8 +42,6 @@ For download and install a specific version:
 ```powershell
 ./deployglpiagent.ps1 -Online -OnlineSpecificVersion "<version>" -InstallerArgs "<install args>"
 ```
-
-
 
 For installation with winget (almost the same as -Online but use winget for download and install):
 ```powershell
@@ -57,7 +59,7 @@ Because the args can be too long for gpedit.msc tool (the script don't start), y
 - Edit the following lines:
 ```
 76  [String]$InstallerPath = "", # NOTE You ca customize the installer path to use here
-79  [String] $InstallArgs = "/qn" # NOTE You ca customize the args to use here
+79  [String]$InstallArgs = "/qn" # NOTE You ca customize the args to use here
 ```
 Line 76 (InstallerPath): Add the path to msi installer (or use InstallerPath param if you path is short) (can be omitted if -Online or -Winget is used)  
 Line 79 (InstallArgs): Add the args to configure the GLPI Agent, you can find all documentation [here](https://glpi-agent.readthedocs.io/en/1.11/installation/windows-command-line.html#command-line-parameters). **Use ` for escape special characters, if you try to use \ the script will not work**.
