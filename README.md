@@ -30,10 +30,24 @@ Remove Fusion inventory previous installation:
 ./deployglpiagent.ps1 -InstallerPath "<GLPI Agent installer>" -InstallerArgs "<install args>" -RemoveFusionInventory
 ```
 
-or for online installation:
-Install from Github repository:
+Install from Github repository (online installation, need internet connexion):
 ```powershell
-./deployglpiagent.ps1 -Online -InstallerArgs "<install args>" -RemoveFusionInventory
+./deployglpiagent.ps1 -Online -InstallerArgs "<install args>"
+```
+For download and install a specific version:
+```powershell
+./deployglpiagent.ps1 -Online -OnlineSpecificVersion "<version>" -InstallerArgs "<install args>"
+```
+
+
+
+For installation with winget (almost the same as -Online but use winget for download and install):
+```powershell
+./deployglpiagent.ps1 -Winget -InstallerArgs "<install args>"
+```
+For install a specific version:
+```powershell
+./deployglpiagent.ps1 -Winget -WingetSpecificVersion "<version>" -InstallerArgs "<install args>"
 ```
 
 ### Deploy via GPO
@@ -42,13 +56,15 @@ Because the args can be too long for gpedit.msc tool (the script don't start), y
 
 - Edit the following lines:
 ```
-42  [String]$InstallerPath = "", # NOTE You ca customize the installer path to use here
-45  [String] $InstallerArgs = "/qn" # NOTE You ca customize the args to use here
+76  [String]$InstallerPath = "", # NOTE You ca customize the installer path to use here
+79  [String] $InstallArgs = "/qn" # NOTE You ca customize the args to use here
 ```
-Line 42: Add the path to msi installer (or use InstallerPath param if you path is short) (don't change it if you want use the online mode)  
-Line 45: Add the args to configure the GLPI Agent, you can find all documentation [here](https://glpi-agent.readthedocs.io/en/1.11/installation/windows-command-line.html#command-line-parameters)
+Line 76 (InstallerPath): Add the path to msi installer (or use InstallerPath param if you path is short) (can be omitted if -Online or -Winget is used)  
+Line 79 (InstallArgs): Add the args to configure the GLPI Agent, you can find all documentation [here](https://glpi-agent.readthedocs.io/en/1.11/installation/windows-command-line.html#command-line-parameters). **Use ` for escape special characters, if you try to use \ the script will not work**.
 
-If you don't want use the GPO interface for set script parameter you can set others param variable by changing her default value.
+> If you don't want use the GPO interface for set script parameter you can set others script parameter by changing the default parameters values at the top of the script.
+
+> Because Winget is installed in user ``AppData/Local`` directory you can't use winget for deploy GLPI Agent with Computer Configuration GPO. You must start the powershell script in User Configuration and the user need to have the admin rights on the computer.
 
 
 ## Issues
