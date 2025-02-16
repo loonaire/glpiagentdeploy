@@ -508,7 +508,7 @@ if ($RemoveFusionInventory -eq $true) {
 }
 
 # GLPI Agent is only available
-if (Get-WindowsArchitecture -ne "x64") {
+if ((Get-WindowsArchitecture) -ne "x64") {
     exit
 }
 
